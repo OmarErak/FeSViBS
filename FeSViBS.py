@@ -122,7 +122,6 @@ def fesvibs(
                 for head, tail in zip(Split.network.resnet50_clients, Split.network.mlp_clients_tail):
                     head_weights.append(weight_vec(head).detach().cpu())
                     tails_weights.append(weight_vec(tail).detach().cpu())
-                
                 mean_avg_tail = torch.mean(torch.stack(tails_weights), axis = 0)
                 mean_avg_head = torch.mean(torch.stack(head_weights), axis = 0)
 
@@ -140,7 +139,8 @@ def fesvibs(
         if (r+1) % save_every_epochs == 0 and r != 0: 
             Split.save_pickles(save_dir)
         print('============================================')
-
+    torch.save(Split.network.state_dict(), 'saved_models/FeSViBS_models/FeSViBS_models_10_no_autoencoder.pth')
+    torch.save(Split.network, 'saved_models/FeSViBS_models/FeSViBS_models_10_no_autoencoder.pt')
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Run Centralized Experiments')

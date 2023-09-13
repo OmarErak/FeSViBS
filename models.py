@@ -351,12 +351,19 @@ class FeSVBiS(nn.Module):
         self.DP = DP
         self.mean = mean
         self.std = std
+        self.autoencoder = AutoEncoder()
 
     def forward(self, x, chosen_block, client_idx):
         x = self.resnet50_clients[client_idx](x)
+        #encode here
+        x = self.autoencoder.encoder(x)
+        #print(x.shape)
         if self.DP: 
             noise = torch.randn(size= x.shape).cuda() * self.std + self.mean
             x = x + noise
+        #decode here
+        x = self.autoencoder.decoder(x)
+        #print(x.shape)
         for block_num in range(chosen_block):
             x = self.vit.blocks[block_num](x)
         x = self.common_network(x)
@@ -489,3 +496,41 @@ class SplitFeSViBS(SplitNetwork):
                 whole_labels.append(labels.detach().cpu())
                 whole_preds.append(predicted.detach().cpu())    
             self.metrics(client_i, whole_labels, whole_preds, running_loss_client_i, len(self.testloader), whole_probs, train= False)
+
+class AutoEncoder(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+         
+        # Building an linear encoder with Linear
+        # layer followed by Relu activation function
+        # 784 ==> 9
+        self.encoder = torch.nn.Sequential(
+            torch.nn.Linear(768, 512),
+            torch.nn.ReLU(),
+            torch.nn.Linear(512, 256),
+            torch.nn.ReLU(),
+            torch.nn.Linear(256, 128),
+            torch.nn.ReLU(),
+            torch.nn.Linear(128, 64)
+        )
+         
+        # Building an linear decoder with Linear
+        # layer followed by Relu activation function
+        # The Sigmoid activation function
+        # outputs the value between 0 and 1
+        # 9 ==> 784
+        self.decoder = torch.nn.Sequential(
+            torch.nn.Linear(64, 128),
+            torch.nn.ReLU(),
+            torch.nn.Linear(128, 256),
+            torch.nn.ReLU(),
+            torch.nn.Linear(256, 512),
+            torch.nn.ReLU(),
+            torch.nn.Linear(512, 768),
+            torch.nn.Sigmoid()
+        )
+ 
+    def forward(self, x):
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded

@@ -75,6 +75,8 @@ def centralized(dataset_name, lr, batch_size, Epochs, input_size, num_workers, s
         if (r+1) % save_every_epochs == 0 and r != 0: 
             centralized_network.save_pickles(save_dir)
         print('============================================')
+    torch.save(centralized_network.network.state_dict(), 'saved_models/centralized_model/centralized_model_5_epochs.pth')
+    torch.save(centralized_network.network, 'saved_models/centralized_model/centralized_entire_model_5_epochs.pt')
 
 
 if __name__ == "__main__":

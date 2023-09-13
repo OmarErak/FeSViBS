@@ -85,6 +85,9 @@ def local(dataset_name, lr, batch_size, Epochs, input_size, num_workers, save_ev
             if (r+1) % save_every_epochs == 0 and r != 0: 
                 local[client_i].save_pickles(save_dir,local= local_arg, client_id=client_i+1) 
         print('============================================')
+    for i in range(num_clients):
+        torch.save(local[i].network.state_dict(), f'saved_models/local/local_model_5_epochs_client{i}.pth')
+        torch.save(local[i].network, f'saved_models/local/local_entire_model_5_epochs_client{i}.pt')
 
 
 if __name__ == "__main__":
